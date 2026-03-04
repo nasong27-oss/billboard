@@ -9,7 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "billboard-top-100": "^2.6.5",
     "framer-motion": "^12.35.0",
     "next": "16.1.6",
     "react": "19.2.3",
