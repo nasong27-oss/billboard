@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #0A0A0A;
+  --bg-secondary: #111111;
+  --accent-red: #FF0033;
+  --accent-blue: #00D4FF;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+html {
+  background-color: var(--bg-primary);
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: white;
+  font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* PWA safe area */
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+}
+
+/* Display font */
+.font-display {
+  font-family: 'Bebas Neue', 'Noto Sans KR', sans-serif;
+}
+
+/* Hide scrollbar */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Gradient mesh bg */
+.mesh-bg {
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(255, 0, 51, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(0, 212, 255, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(255, 0, 51, 0.04) 0%, transparent 50%),
+    #0A0A0A;
+}
