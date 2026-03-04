@@ -27,7 +27,7 @@ export async function fetchBillboardChart(chartId: string): Promise<ChartData> {
     }
 
     const timeout = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Billboard fetch timeout')), 8000)
+      setTimeout(() => reject(new Error('Billboard fetch timeout')), 2000)
     );
 
     const data = await Promise.race([

@@ -1,8 +1,10 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { ChartSong } from '@/lib/types';
+import { fetchAlbumArtClient } from '@/lib/itunes';
 
 interface SongCardProps {
   song: ChartSong;
@@ -38,17 +40,37 @@ function RankChange({ current, last }: { current: number; last: number }) {
 }
 
 export default function SongCard({ song, index }: SongCardProps) {
+  const [albumArt, setAlbumArt] = useState<string>('');
+  const [artLoading, setArtLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    // Stagger requests so we don't fire 40 at once
+    const delay = Math.min(index * 30, 600);
+    const timer = setTimeout(async () => {
+      const url = await fetchAlbumArtClient(song.title, song.artist);
+      if (!cancelled) {
+        setAlbumArt(url);
+        setArtLoading(false);
+      }
+    }, delay);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [song.title, song.artist, index]);
+
   const appleLink = `https://music.apple.com/search?term=${encodeURIComponent(`${song.title} ${song.artist}`)}`;
   const spotifyLink = `https://open.spotify.com/search/${encodeURIComponent(`${song.title} ${song.artist}`)}`;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.02, duration: 0.3 }}
+      transition={{ delay: index * 0.02, duration: 0.25 }}
       className="relative flex items-center gap-3 p-3 rounded-xl
         bg-white/5 backdrop-blur-sm border border-white/10
-        hover:bg-white/8 hover:border-white/20 transition-all duration-200"
+        hover:bg-white/[0.08] hover:border-white/20 transition-all duration-200"
     >
       {/* Rank */}
       <div className="flex-shrink-0 w-10 text-center">
@@ -64,9 +86,9 @@ export default function SongCard({ song, index }: SongCardProps) {
 
       {/* Album Art */}
       <div className="flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-white/10">
-        {song.image ? (
+        {albumArt ? (
           <Image
-            src={song.image}
+            src={albumArt}
             alt={`${song.title} album art`}
             width={56}
             height={56}
@@ -74,7 +96,9 @@ export default function SongCard({ song, index }: SongCardProps) {
             unoptimized
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-2xl bg-gradient-to-br from-white/10 to-white/5">
+          <div
+            className={`w-full h-full flex items-center justify-center text-xl bg-gradient-to-br from-white/10 to-white/5 transition-opacity duration-300 ${artLoading ? 'opacity-50' : 'opacity-100'}`}
+          >
             🎵
           </div>
         )}
@@ -100,7 +124,7 @@ export default function SongCard({ song, index }: SongCardProps) {
           rel="noopener noreferrer"
           whileTap={{ scale: 0.95 }}
           className="flex items-center justify-center w-8 h-8 rounded-lg
-            bg-white text-black text-xs font-bold hover:bg-gray-100 transition-colors"
+            bg-white text-black hover:bg-gray-100 transition-colors"
           title="Apple Music"
         >
           <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
@@ -112,7 +136,7 @@ export default function SongCard({ song, index }: SongCardProps) {
           target="_blank"
           rel="noopener noreferrer"
           whileTap={{ scale: 0.95 }}
-          className="flex items-center justify-center w-8 h-8 rounded-lg text-white text-xs font-bold transition-colors"
+          className="flex items-center justify-center w-8 h-8 rounded-lg text-white transition-colors"
           style={{ backgroundColor: '#1DB954' }}
           title="Spotify"
         >
