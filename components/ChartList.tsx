@@ -1,41 +1,29 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import useSWR from 'swr';
 import { motion, AnimatePresence } from 'framer-motion';
 import SongCard from './SongCard';
-import SpotifyButton from './SpotifyButton';
 import { ChartData } from '@/lib/types';
 import { ChartConfig } from '@/lib/chartConfig';
+
+const fetcher = (url: string) =>
+  fetch(url).then((res) => {
+    if (!res.ok) throw new Error('Failed to fetch');
+    return res.json();
+  });
 
 interface ChartListProps {
   chart: ChartConfig;
 }
 
 export default function ChartList({ chart }: ChartListProps) {
-  const [data, setData] = useState<ChartData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const { data, error, isLoading, mutate } = useSWR<ChartData>(
+    `/api/charts/${chart.id}`,
+    fetcher,
+    { revalidateOnFocus: false, dedupingInterval: 3600_000 }
+  );
 
-  const fetchChart = useCallback(async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      const res = await fetch(`/api/charts/${chart.id}`);
-      if (!res.ok) throw new Error('Failed to fetch');
-      const json = await res.json();
-      setData(json);
-    } catch {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [chart.id]);
-
-  useEffect(() => {
-    fetchChart();
-  }, [fetchChart]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex flex-col gap-2 p-4">
         {Array.from({ length: 10 }).map((_, i) => (
@@ -53,12 +41,12 @@ export default function ChartList({ chart }: ChartListProps) {
     return (
       <div className="flex flex-col items-center justify-center p-12 gap-4">
         <div className="text-4xl">😕</div>
-        <p className="text-gray-400 text-sm">Failed to load chart data</p>
+        <p className="text-gray-400 text-sm">차트 데이터를 불러오지 못했어요</p>
         <button
-          onClick={fetchChart}
+          onClick={() => mutate()}
           className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-500 transition-colors"
         >
-          Retry
+          다시 시도
         </button>
       </div>
     );
@@ -72,7 +60,7 @@ export default function ChartList({ chart }: ChartListProps) {
           <p className="text-xs text-gray-500">Week of</p>
           <p className="text-sm text-gray-300 font-medium">{data.week}</p>
         </div>
-        <SpotifyButton chart={chart} songs={data.songs} />
+        <p className="text-xs text-gray-600">Top {data.songs.length}</p>
       </div>
 
       {/* Song List */}

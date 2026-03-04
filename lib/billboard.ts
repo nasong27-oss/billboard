@@ -26,20 +26,27 @@ export async function fetchBillboardChart(chartId: string): Promise<ChartData> {
       return getMockChart(chartId);
     }
 
-    const data = await new Promise<ChartData>((resolve, reject) => {
-      getChart(chartId, (err: Error | null, chart: { date: string; songs: unknown[] }) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        const songs = (chart.songs || []).slice(0, 40).map(parseBillboardSong);
-        resolve({
-          chart: chartId,
-          week: chart.date || new Date().toISOString().split('T')[0],
-          songs,
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Billboard fetch timeout')), 8000)
+    );
+
+    const data = await Promise.race([
+      new Promise<ChartData>((resolve, reject) => {
+        getChart(chartId, (err: Error | null, chart: { date: string; songs: unknown[] }) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          const songs = (chart.songs || []).slice(0, 40).map(parseBillboardSong);
+          resolve({
+            chart: chartId,
+            week: chart.date || new Date().toISOString().split('T')[0],
+            songs,
+          });
         });
-      });
-    });
+      }),
+      timeout,
+    ]);
 
     return data;
   } catch (error) {
